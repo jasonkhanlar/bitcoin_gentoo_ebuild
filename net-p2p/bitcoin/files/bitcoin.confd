@@ -1,0 +1,7 @@
+# Config file for /etc/init.d/bitcoin
+
+# owner of mlnet process (don't change, must be existing)
+BITCOIN_USER="bitcoin"
+
+BITCOIN_OPTS="-conf /etc/bitcoin.conf"
+
