@@ -17,7 +17,6 @@ IUSE=""
 
 DEPEND="dev-libs/openssl
 	dev-libs/boost
-	x11-libs/gtk+:2
 	sys-libs/db:4.8
 	x11-libs/wxGTK:2.9"
 RDEPEND="${DEPEND}"
