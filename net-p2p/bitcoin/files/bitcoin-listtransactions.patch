@@ -1,0 +1,255 @@
+diff --git a/rpc.cpp b/rpc.cpp
+index d03a7ce..cf691f6 100644
+--- a/rpc.cpp
++++ b/rpc.cpp
+@@ -367,25 +367,224 @@ Value sendtoaddress(const Array& params, bool fHelp)
+     return "sent";
+ }
+ 
++enum txn_classification
++{
++	txn_unknown,
++	txn_generated,
++	txn_credit,
++	txn_debit,
++	txn_mixed_debit,
++};
++
++static const char *txn_class_str[] = {
++	"unknown",
++	"generated",
++	"credit",
++	"debit",
++	"mixed_debit",
++};
++
++struct txnitem
++{
++    uint256 hash;
++    uint160 hash160;
++    int64 nAmount;
++    int64 txTime;
++    int nConf;
++    enum txn_classification txnClass;
++    txnitem()
++    {
++	hash = 0;
++	hash160 = 0;
++        nAmount = 0;
++        nConf = INT_MAX;
++	txnClass = txn_unknown;
++    }
++};
++
++bool txnitem_cmp(const txnitem& a, const txnitem &b)
++{
++	return a.nConf < b.nConf;
++}
++
++Value ListTransactions(int64 nCount, int64 nMinDepth, bool fGenerated)
++{
++    vector<txnitem> tv;
++    CRITICAL_BLOCK(cs_mapWallet)
++    {
++        for (map<uint256, CWalletTx>::iterator it = mapWallet.begin(); it != mapWallet.end(); ++it)
++        {
++            const CWalletTx& wtx = (*it).second;
++	    int64 nCredit = wtx.GetCredit(true);
++	    int64 nDebit = wtx.GetDebit();
++	    int64 nNet = nCredit - nDebit;
++	    int64 txTime = wtx.GetTxTime();
++
++	    bool gen = wtx.IsCoinBase();
++            if (gen) {
++		if (!fGenerated)
++			continue;
++	    	if (!wtx.IsInMainChain())
++			continue;
++	    }
++
++            int nDepth = wtx.GetDepthInMainChain();
++            if (nDepth < nMinDepth)
++                continue;
++
++	    uint256 hash = wtx.GetHash();
++
++	    if (nNet > 0)
++	    {
++                foreach(const CTxOut& txout, wtx.vout)
++                {
++                    uint160 hash160 = txout.scriptPubKey.GetBitcoinAddressHash160();
++
++		    if (!txout.IsMine())
++			    continue;
++
++                    txnitem item;
++		    item.hash = hash;
++		    item.hash160 = hash160;
++		    item.txTime = txTime;
++                    item.nAmount = txout.nValue;
++                    item.nConf = min(item.nConf, nDepth);
++		    if (gen)
++		        item.txnClass = txn_generated;
++		    else
++		        item.txnClass = txn_credit;
++
++		    tv.push_back(item);
++                }
++            }
++	    else
++	    {
++	    	bool fAllFromMe = true;
++		foreach(const CTxIn& txin, wtx.vin)
++		    fAllFromMe = fAllFromMe && txin.IsMine();
++
++		bool fAllToMe = true;
++		foreach(const CTxOut& txout, wtx.vout)
++		    fAllToMe = fAllToMe && txout.IsMine();
++
++		if (fAllFromMe && fAllToMe)	// payment to self
++		{
++                    txnitem item;
++		    item.hash = hash;
++		    item.hash160 = wtx.vout[0].scriptPubKey.GetBitcoinAddressHash160();
++                    item.nAmount = wtx.vout[0].nValue;
++		    item.txTime = txTime;
++                    item.nConf = min(item.nConf, nDepth);
++		    item.txnClass = txn_credit;	// take your pick, cred or deb
++
++		    tv.push_back(item);
++		}
++		else if (fAllFromMe)		// debit txn
++		{
++		    int64 nTxFee = nDebit - wtx.GetValueOut();
++		    for (int nOut = 0; nOut < wtx.vout.size(); nOut++)
++		    {
++		    	const CTxOut& txout = wtx.vout[nOut];
++			if (txout.IsMine())
++			    continue;
++
++                        uint160 hash160;
++			ExtractHash160(txout.scriptPubKey, hash160);
++
++			int64 nValue = txout.nValue;
++			if (nTxFee > 0)
++			{
++				nValue += nTxFee;
++				nTxFee = 0;
++			}
++
++                        txnitem item;
++		        item.hash = hash;
++		        item.hash160 = hash160;
++		    	item.txTime = txTime;
++                        item.nAmount = nValue;
++                        item.nConf = min(item.nConf, nDepth);
++			item.txnClass = txn_debit;
++
++		        tv.push_back(item);
++		    }
++		}
++		else				// mixed debit txn
++		{				// can't separate payees
++                    txnitem item;
++		    item.hash = hash;
++                    item.nAmount = nNet;
++	    	    item.txTime = txTime;
++                    item.nConf = min(item.nConf, nDepth);
++		    item.txnClass = txn_mixed_debit;
++
++		    tv.push_back(item);
++		}
++	    }
++        }
++    }
++
++    std::sort(tv.begin(), tv.end(), txnitem_cmp);
++
++    // Reply
++    Array ret;
++    int64 returned = 0;
++    CRITICAL_BLOCK(cs_mapAddressBook)
++    {
++        foreach(const txnitem& txn, tv)
++	{
++	    if ((nCount > 0) && (returned >= nCount))
++	    	break;
++
++	    string strAddress = Hash160ToAddress(txn.hash160);
++	    string strLabel, strClass;
++	    string strHash = txn.hash.GetHex();
++            int64 nAmount = txn.nAmount;
++            int nConf = txn.nConf;
++
++	    map<string, string>::iterator mi = mapAddressBook.find(strAddress);
++	    if (mi != mapAddressBook.end())
++		strLabel = (*mi).second;
++
++	    strClass = txn_class_str[txn.txnClass];
++
++            Object obj;
++            obj.push_back(Pair("address",       strAddress));
++            obj.push_back(Pair("label",         strLabel));
++            obj.push_back(Pair("txid",          strHash));
++            obj.push_back(Pair("txtime",        (int64_t)txn.txTime));
++            obj.push_back(Pair("category",      strClass));
++            obj.push_back(Pair("amount",        (double)nAmount /(double)COIN));
++            obj.push_back(Pair("confirmations", (nConf == INT_MAX ? 0 :nConf)));
++            ret.push_back(obj);
++
++	    returned++;
++        }
++    }
++
++    return ret;
++}
+ 
+ Value listtransactions(const Array& params, bool fHelp)
+ {
+-    if (fHelp || params.size() > 2)
++    if (fHelp || params.size() > 3)
+         throw runtime_error(
+-            "listtransactions [count=10] [includegenerated=false]\n"
++            "listtransactions [count=10] [minconf=1] [includegenerated=true]\n"
+             "Returns up to [count] most recent transactions.");
+ 
+     int64 nCount = 10;
+     if (params.size() > 0)
+         nCount = params[0].get_int64();
+-    bool fGenerated = false;
++
++    int64 nMinDepth = 1;
+     if (params.size() > 1)
+-        fGenerated = params[1].get_bool();
++        nMinDepth = params[1].get_int64();
+ 
+-    Array ret;
+-    //// not finished
+-    ret.push_back("not implemented yet");
+-    return ret;
++    bool fGenerated = true;
++    if (params.size() > 2)
++        fGenerated = params[2].get_bool();
++
++    return ListTransactions(nCount, nMinDepth, fGenerated);
+ }
+ 
+ 
+@@ -665,6 +864,7 @@ pair<string, rpcfn_type> pCallTable[] =
+     make_pair("getreceivedbylabel",    &getreceivedbylabel),
+     make_pair("listreceivedbyaddress", &listreceivedbyaddress),
+     make_pair("listreceivedbylabel",   &listreceivedbylabel),
++    make_pair("listtransactions",      &listtransactions),
+ };
+ map<string, rpcfn_type> mapCallTable(pCallTable, pCallTable + sizeof(pCallTable)/sizeof(pCallTable[0]));
+ 
+@@ -1104,7 +1304,8 @@ int CommandLineRPC(int argc, char *argv[])
+         if (strMethod == "setgenerate"            && n > 1) ConvertTo<boost::int64_t>(params[1]);
+         if (strMethod == "sendtoaddress"          && n > 1) ConvertTo<double>(params[1]);
+         if (strMethod == "listtransactions"       && n > 0) ConvertTo<boost::int64_t>(params[0]);
+-        if (strMethod == "listtransactions"       && n > 1) ConvertTo<bool>(params[1]);
++        if (strMethod == "listtransactions"       && n > 1) ConvertTo<boost::int64_t>(params[1]);
++        if (strMethod == "listtransactions"       && n > 2) ConvertTo<bool>(params[2]);
+         if (strMethod == "getamountreceived"      && n > 1) ConvertTo<boost::int64_t>(params[1]); // deprecated
+         if (strMethod == "getreceivedbyaddress"   && n > 1) ConvertTo<boost::int64_t>(params[1]);
+         if (strMethod == "getreceivedbylabel"     && n > 1) ConvertTo<boost::int64_t>(params[1]);

@@ -1,0 +1,77 @@
+--- rpc.cpp.temp	2010-08-13 16:54:03.899392286 -0500
++++ rpc.cpp	2010-08-13 16:55:19.669393144 -0500
+@@ -53,6 +53,66 @@
+ /// Note: This interface may still be subject to change.
+ ///
+ 
++Value listgenerated(const Array& params, bool fHelp) {
++  if (fHelp || params.size() > 1)
++        throw runtime_error(
++            "listgenerated [pendingOnly=false]\n"
++            "Returns an array of objects describing generated blocks.\n"
++	    "If pendingOnly == true, returns only unmatured but accepted blocks.\n");
++
++    // List all generated or only unconfirmed?
++    int fPendingOnly = 0;
++    if (params.size() > 0)
++      fPendingOnly = params[0].get_bool();
++
++    // Tally
++    CRITICAL_BLOCK(cs_mapWallet)
++    {
++      string strDescription;
++      Array ret;
++      for (map<uint256, CWalletTx>::iterator it = mapWallet.begin(); it != mapWallet.end(); ++it) {
++	const CWalletTx& wtx = (*it).second;
++	if (wtx.IsCoinBase()) {
++	  int64 nUnmatured = 0;
++	  int64 genTime = wtx.GetTxTime();
++
++	  foreach(const CTxOut& txout, wtx.vout)
++	    nUnmatured += txout.GetCredit();
++
++	  if (wtx.IsInMainChain()) {
++	    // Check if the block was requested by anyone
++	    if (GetAdjustedTime() - wtx.nTimeReceived > 2 * 60 && wtx.GetRequestCount() == 0) { // No
++	      Object obj;
++	      obj.push_back(Pair("value",         (double)nUnmatured/(double)COIN));
++	      obj.push_back(Pair("maturesIn",     wtx.GetBlocksToMaturity()));
++	      obj.push_back(Pair("accepted",      false));
++	      obj.push_back(Pair("confirmations", wtx.GetDepthInMainChain()));
++	      obj.push_back(Pair("genTime",       (uint64_t)genTime));
++	      if(!fPendingOnly) ret.push_back(obj);
++	    } else { // Yes
++	      Object obj;
++	      obj.push_back(Pair("value",         (double)nUnmatured/(double)COIN));
++	      obj.push_back(Pair("maturesIn",     wtx.GetBlocksToMaturity()));
++	      obj.push_back(Pair("accepted",      true));
++	      obj.push_back(Pair("confirmations", wtx.GetDepthInMainChain()));
++	      obj.push_back(Pair("genTime",       (uint64_t)genTime));
++	      if(!fPendingOnly || wtx.GetBlocksToMaturity() > 0)
++		ret.push_back(obj);
++	    }
++	  } else { // Rejected
++	      Object obj;
++	      obj.push_back(Pair("value",         (double)nUnmatured/(double)COIN));
++	      obj.push_back(Pair("maturesIn",     -1));
++	      obj.push_back(Pair("accepted",      false));
++	      obj.push_back(Pair("confirmations", 0));
++	      obj.push_back(Pair("genTime",       (uint64_t)genTime));
++	      if(!fPendingOnly) ret.push_back(obj);
++	  }
++	}
++      }
++      return ret;
++    }
++}
+ 
+ Value help(const Array& params, bool fHelp)
+ {
+@@ -947,6 +1007,7 @@
+ 
+ pair<string, rpcfn_type> pCallTable[] =
+ {
++    make_pair("listgenerated",         &listgenerated),
+     make_pair("help",                  &help),
+     make_pair("stop",                  &stop),
+     make_pair("getblock",	       &getblock),
