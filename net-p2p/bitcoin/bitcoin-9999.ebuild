@@ -6,22 +6,28 @@ EAPI="2"
 
 inherit distutils eutils subversion
 
-DESCRIPTION="Bitcoin is a peer-to-peer network based digital currency."
-HOMEPAGE="http://bitcoin.org"
-ESVN_REPO_URI="https://bitcoin.svn.sourceforge.net/svnroot/${PN}"
+DESCRIPTION="A P2P network based digital currency."
+HOMEPAGE="http://bitcoin.org/"
+ESVN_REPO_URI="https://${PN}.svn.sourceforge.net/svnroot/${PN}/trunk"
 
 LICENSE="MIT"
 SLOT="0"
 KEYWORDS="~x86"
 IUSE="+daemon nls wxwidgets"
 
-DEPEND="dev-libs/openssl
-	dev-libs/boost
+DEPEND="dev-libs/boost
+	dev-libs/openssl
+	nls? (
+		sys-devel/gettext
+	)
 	sys-libs/db:4.8
-	wxwidgets? ( x11-libs/wxGTK:2.9[X]
-		>=app-admin/eselect-wxwidgets-0.7-r1
+	wxwidgets? (
+		app-admin/eselect-wxwidgets
+		x11-libs/wxGTK:2.9[X]
 	)"
 RDEPEND="${DEPEND}"
+
+S="${WORKDIR}/${P}/trunk"
 
 pkg_setup() {
 	ebegin "Creating bitcoin user and group"
@@ -30,20 +36,22 @@ pkg_setup() {
 }
 
 src_prepare() {
-	cd trunk
 	epatch "${FILESDIR}"/${P}-Makefile.patch
 	epatch "${FILESDIR}"/${PN}-getblock.patch			# http://www.bitcoin.org/smf/index.php?topic=724.msg8053#msg8053
 	epatch "${FILESDIR}"/${PN}-http-json-rpc-bind-any.patch	# http://www.bitcoin.org/smf/index.php?topic=611.msg11859#msg11859
 	epatch "${FILESDIR}"/${PN}-listgenerated.patch		# http://www.bitcoin.org/smf/index.php?topic=611.msg11859#msg11859
 	epatch "${FILESDIR}"/${PN}-listtransactions.patch		# http://www.bitcoin.org/smf/index.php?topic=611.msg9123#msg9123
 	epatch "${FILESDIR}"/${PN}-max_outbound.patch		# http://www.bitcoin.org/smf/index.php?topic=611.msg11859#msg11859
-	make -f makefile.unix
+	emake -f makefile.unix
 }
 
 src_compile() {
-	cd trunk
-	if use daemon; then emake bitcoind || die "emake bitcoind failed"; fi
-	if use wxwidgets; then emake bitcoin || die "emake bitcoin failed"; fi
+	if use daemon; then
+		emake bitcoind || die "emake bitcoind failed";
+	fi
+	if use wxwidgets; then
+		emake bitcoin || die "emake bitcoin failed";
+	fi
 	if ! use daemon && ! use wxwidgets; then
 		einfo "No daemon or wxwidgets USE flag selected, compiling daemon by default."
 		emake bitcoind || die "emake bitcoind failed"
@@ -52,7 +60,6 @@ src_compile() {
 }
 
 src_install() {
-	cd trunk
 	if use daemon || ( ! use wxwidgets && ! use daemon ); then
 		dobin bitcoind
 		# Install default configuration - Currently unused due to nonfunctional init script
@@ -78,9 +85,7 @@ src_install() {
 		for val in ${LINGUAS}
 		do
 			if [ -e "$val/LC_MESSAGES/bitcoin.mo" ]; then
-				einfo "$val"
-				insinto "/usr/share/locale/$val/LC_MESSAGES/"
-				doins "$val/LC_MESSAGES/bitcoin.mo"
+				domo "$val/LC_MESSAGES/bitcoin.mo" || die "domo $val/LC_MESSAGES/bitcoin.mo"
 			fi
 		done
 	fi	
