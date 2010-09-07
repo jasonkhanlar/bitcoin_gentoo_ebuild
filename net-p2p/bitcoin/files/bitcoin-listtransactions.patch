@@ -1,10 +1,10 @@
 diff --git a/rpc.cpp b/rpc.cpp
-index d03a7ce..cf691f6 100644
+index 0970c87..dff39cf 100644
 --- a/rpc.cpp
 +++ b/rpc.cpp
-@@ -367,25 +367,224 @@ Value sendtoaddress(const Array& params, bool fHelp)
-     return "sent";
+@@ -377,24 +377,224 @@ Value sendtoaddress(const Array& params, bool fHelp)
  }
+ 
  
 +enum txn_classification
 +{
@@ -203,7 +203,7 @@ index d03a7ce..cf691f6 100644
 +
 +    return ret;
 +}
- 
++
  Value listtransactions(const Array& params, bool fHelp)
  {
 -    if (fHelp || params.size() > 2)
@@ -235,15 +235,15 @@ index d03a7ce..cf691f6 100644
  }
  
  
-@@ -665,6 +864,7 @@ pair<string, rpcfn_type> pCallTable[] =
+@@ -686,6 +886,7 @@ pair<string, rpcfn_type> pCallTable[] =
+     make_pair("getallreceived",        &listreceivedbyaddress), // deprecated, renamed to listreceivedbyaddress
+     make_pair("getreceivedbyaddress",  &getreceivedbyaddress),
      make_pair("getreceivedbylabel",    &getreceivedbylabel),
++    make_pair("listtransactions",      &listtransactions),
      make_pair("listreceivedbyaddress", &listreceivedbyaddress),
      make_pair("listreceivedbylabel",   &listreceivedbylabel),
-+    make_pair("listtransactions",      &listtransactions),
- };
- map<string, rpcfn_type> mapCallTable(pCallTable, pCallTable + sizeof(pCallTable)/sizeof(pCallTable[0]));
- 
-@@ -1104,7 +1304,8 @@ int CommandLineRPC(int argc, char *argv[])
+     make_pair("backupwallet",          &backupwallet),
+@@ -1177,7 +1378,8 @@ int CommandLineRPC(int argc, char *argv[])
          if (strMethod == "setgenerate"            && n > 1) ConvertTo<boost::int64_t>(params[1]);
          if (strMethod == "sendtoaddress"          && n > 1) ConvertTo<double>(params[1]);
          if (strMethod == "listtransactions"       && n > 0) ConvertTo<boost::int64_t>(params[0]);
