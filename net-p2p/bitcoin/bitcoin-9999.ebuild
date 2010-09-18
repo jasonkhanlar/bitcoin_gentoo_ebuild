@@ -12,7 +12,7 @@ ESVN_REPO_URI="https://${PN}.svn.sourceforge.net/svnroot/${PN}/trunk"
 
 LICENSE="MIT"
 SLOT="0"
-KEYWORDS="~x86"
+KEYWORDS="~amd64 ~x86"
 IUSE="+daemon nls wxwidgets"
 
 DEPEND="dev-libs/boost
@@ -32,13 +32,14 @@ S="${WORKDIR}/${P}/trunk"
 pkg_setup() {
 	ebegin "Creating bitcoin user and group"
 	enewgroup ${PN}
-	enewuser ${PN} -1 -1 /var/lib/bitcoin ${PN}
+	enewuser ${PN} -1 /bin/bash /var/lib/bitcoin ${PN}
 }
 
 src_prepare() {
 	epatch "${FILESDIR}"/${P}-Makefile.patch
+	epatch "${FILESDIR}"/${PN}-bindaddr.patch			# http://www.bitcoin.org/smf/index.php?topic=984.msg13120#msg13120
+	epatch "${FILESDIR}"/${PN}-disable_ip_transactions.patch	# http://www.bitcoin.org/smf/index.php?topic=1048.msg13022#msg13022
 	epatch "${FILESDIR}"/${PN}-getblock.patch			# http://www.bitcoin.org/smf/index.php?topic=724.msg8053#msg8053
-	epatch "${FILESDIR}"/${PN}-http-json-rpc-bind-any.patch	# http://www.bitcoin.org/smf/index.php?topic=611.msg11859#msg11859
 	epatch "${FILESDIR}"/${PN}-listgenerated.patch		# http://www.bitcoin.org/smf/index.php?topic=611.msg11859#msg11859
 	epatch "${FILESDIR}"/${PN}-listtransactions.patch		# http://www.bitcoin.org/smf/index.php?topic=611.msg9123#msg9123
 	epatch "${FILESDIR}"/${PN}-max_outbound.patch		# http://www.bitcoin.org/smf/index.php?topic=611.msg11859#msg11859
@@ -62,19 +63,20 @@ src_compile() {
 src_install() {
 	if use daemon || ( ! use wxwidgets && ! use daemon ); then
 		dobin bitcoind
-		# Install default configuration - Currently unused due to nonfunctional init script
+
 		insinto /etc/bitcoin
 		newins "${FILESDIR}/bitcoin.conf" bitcoin.conf
 
-		# Currently init script will not work due to ~/.bitcoin evaluated as /root/.bitcoin as user ${BITCOIN_USER}
-		# As soon as discovery of method to store all bitcoin files into /etc/bitcoin/ the init script will work.
-		#newconfd "${FILESDIR}/bitcoin.confd" bitcoin
-		#newinitd "${FILESDIR}/bitcoin.initd" bitcoin
+		newconfd "${FILESDIR}/bitcoin.confd" bitcoind
+		# Init script still nonfunctional.
+		newinitd "${FILESDIR}/bitcoin.initd" bitcoind
 		dodir /var/lib/bitcoin
 
-		# We need the symlink to su to bitcoind to stop it.
-		dodir /var/lib/bitcoin/.bitcoin
+		keepdir /var/lib/bitcoin
+		fperms 700 /var/lib/bitcoin
+		fowners bitcoin:bitcoin /var/lib/bitcoin/
 		dosym /etc/bitcoin/bitcoin.conf /var/lib/bitcoin/.bitcoin/bitcoin.conf
+		fowners bitcoin:bitcoin /var/lib/bitcoin/.bitcoin
 	fi
 	if use wxwidgets; then
 		dobin bitcoin

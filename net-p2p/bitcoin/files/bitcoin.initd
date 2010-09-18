@@ -33,17 +33,13 @@ start() {
 	#checkconfig || return $?
 	checkconfig || return 1
 	ebegin "Starting Bitcoin daemon"
-		# Start via start-stop-daemon
-		start-stop-daemon --start --user "${BITCOIN_USER}" --name bitcoind --pidfile /var/run/bitcoind.pid --background --make-pidfile \
-		--chuid "${BITCOIN_USER}" --exec /usr/bin/bitcoind -- ${BITCOIN_OPTS}
+	start-stop-daemon --start --user "${BITCOIN_USER}" --name bitcoind --pidfile /var/run/bitcoind.pid --background --make-pidfile \
+	--env HOME="/var/lib/bitcoin" --exec /usr/bin/bitcoind --chuid "${BITCOIN_USER}" -- "${BITCOIN_OPTS}"
 	eend $?
 }
 
 stop() {
 	ebegin "Stopping Bitcoin daemon"
-		# First yell at bitcoind that it should stop (bitcoind could corrupt data when receiving SIGTERM or SIGKILL)
-		su ${BITCOIN_USER} -s /bin/sh -c '/usr/bin/bitcoind stop'
-		# Then we clean up the start/stop daemon
-		start-stop-daemon --stop --user "${BITCOIN_USER}" --name bitcoind --pidfile /var/run/bitcoind.pid
+	start-stop-daemon --stop --user "${BITCOIN_USER}" --name bitcoind --pidfile /var/run/bitcoind.pid
 	eend $?
 }

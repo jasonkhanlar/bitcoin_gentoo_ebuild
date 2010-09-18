@@ -1,5 +1,5 @@
 diff --git a/rpc.cpp b/rpc.cpp
-index 0970c87..dff39cf 100644
+index 9a47573..0156c92 100644
 --- a/rpc.cpp
 +++ b/rpc.cpp
 @@ -377,24 +377,224 @@ Value sendtoaddress(const Array& params, bool fHelp)
@@ -243,7 +243,7 @@ index 0970c87..dff39cf 100644
      make_pair("listreceivedbyaddress", &listreceivedbyaddress),
      make_pair("listreceivedbylabel",   &listreceivedbylabel),
      make_pair("backupwallet",          &backupwallet),
-@@ -1177,7 +1378,8 @@ int CommandLineRPC(int argc, char *argv[])
+@@ -1189,7 +1390,8 @@ int CommandLineRPC(int argc, char *argv[])
          if (strMethod == "setgenerate"            && n > 1) ConvertTo<boost::int64_t>(params[1]);
          if (strMethod == "sendtoaddress"          && n > 1) ConvertTo<double>(params[1]);
          if (strMethod == "listtransactions"       && n > 0) ConvertTo<boost::int64_t>(params[0]);

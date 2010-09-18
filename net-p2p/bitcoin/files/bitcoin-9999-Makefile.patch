@@ -1,6 +1,6 @@
---- makefile.unix	2010-09-01 23:33:10.611597484 +0000
+--- makefile.unix	2010-09-15 17:10:14.161910034 +0000
 +++ makefile.gentoo	2010-08-26 06:56:56.315435190 +0000
-@@ -4,14 +4,11 @@
+@@ -4,16 +4,11 @@
  
  
  INCLUDEPATHS= \
@@ -10,16 +10,18 @@
 + -I"/usr/lib/wx/include/gtk2-unicode-2.9" \
 + -I"/usr/include/db4.8"
  
+-# for wxWidgets 2.9.1, add -l Xxf86vm
 -WXLIBS= \
 - -Wl,-Bstatic \
 -   -l wx_gtk2ud-2.9 \
 - -Wl,-Bdynamic \
--   -l gtk-x11-2.0 -l SM
+-   -l gtk-x11-2.0 \
+-   -l SM
 +WXLIBS=$(shell /usr/bin/wx-config --libs)
  
  # for boost 1.37, add -mt to the boost libraries
  LIBS= \
-@@ -44,7 +41,7 @@
+@@ -46,7 +41,7 @@
      cryptopp/obj/cpu.o
  
  

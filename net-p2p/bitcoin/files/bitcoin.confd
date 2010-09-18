@@ -3,5 +3,6 @@
 # owner of mlnet process (don't change, must be existing)
 BITCOIN_USER="bitcoin"
 
-BITCOIN_OPTS="-conf=/etc/bitcoin.conf -datadir=/var/lib/bitcoin"
+# See http://www.bitcoin.org/smf/index.php?topic=1063
+BITCOIN_OPTS="-min"
 
