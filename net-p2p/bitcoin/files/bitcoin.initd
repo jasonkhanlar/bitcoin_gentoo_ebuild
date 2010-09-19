@@ -34,6 +34,9 @@ start() {
 	checkconfig || return 1
 	ebegin "Starting Bitcoin daemon"
 	start-stop-daemon --start --user "${BITCOIN_USER}" --name bitcoind --pidfile /var/run/bitcoind.pid --background --make-pidfile \
+	if test -z "${BITCOIN_OPTS}"; then
+		BITCOIN_OPTS="-min"
+	fi
 	--env HOME="/var/lib/bitcoin" --exec /usr/bin/bitcoind --chuid "${BITCOIN_USER}" -- "${BITCOIN_OPTS}"
 	eend $?
 }

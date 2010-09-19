@@ -4,5 +4,5 @@
 BITCOIN_USER="bitcoin"
 
 # See http://www.bitcoin.org/smf/index.php?topic=1063
-BITCOIN_OPTS="-min"
+BITCOIN_OPTS=""
 
