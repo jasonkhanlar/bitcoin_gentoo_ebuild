@@ -21,7 +21,7 @@ DEPEND="dev-libs/boost
 		sys-devel/gettext
 	)
 	selinux? (
-		sys-libs/ibselinux
+		sys-libs/libselinux
 	)
 	sys-libs/db:4.8
 	wxwidgets? (
