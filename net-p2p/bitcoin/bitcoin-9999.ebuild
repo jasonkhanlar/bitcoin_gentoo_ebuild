@@ -16,6 +16,7 @@ KEYWORDS="~amd64 ~x86"
 IUSE="+daemon nls selinux sse2 wxwidgets"
 
 DEPEND="dev-libs/boost
+	dev-libs/crypto++
 	dev-libs/openssl
 	nls? (
 		sys-devel/gettext
