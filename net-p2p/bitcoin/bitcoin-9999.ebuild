@@ -13,7 +13,7 @@ ESVN_REPO_URI="https://${PN}.svn.sourceforge.net/svnroot/${PN}/trunk"
 LICENSE="MIT"
 SLOT="0"
 KEYWORDS="~amd64 ~x86"
-IUSE="+daemon nls selinux sse2 wxwidgets"
+IUSE="daemon doc nls selinux sse2 wxwidgets"
 
 DEPEND="dev-libs/boost
 	dev-libs/crypto++
@@ -132,7 +132,9 @@ src_install() {
 		done
 	fi
 	
-	einfo "Installing documentation"
-	edos2unix *.txt
-	dodoc *.txt
+	if use doc; then
+		einfo "Installing documentation"
+		edos2unix *.txt
+		dodoc *.txt
+	fi
 }
