@@ -1,8 +1,8 @@
 diff --git a/rpc.cpp b/rpc.cpp
-index 9a47573..0156c92 100644
+index 9a47573..893b34e 100644
 --- a/rpc.cpp
 +++ b/rpc.cpp
-@@ -377,24 +377,224 @@ Value sendtoaddress(const Array& params, bool fHelp)
+@@ -377,24 +377,226 @@ Value sendtoaddress(const Array& params, bool fHelp)
  }
  
  
@@ -43,6 +43,8 @@ index 9a47573..0156c92 100644
 +
 +bool txnitem_cmp(const txnitem& a, const txnitem &b)
 +{
++	if (a.nConf == b.nConf)
++	    return a.txTime < b.txTime;
 +	return a.nConf < b.nConf;
 +}
 +
@@ -235,7 +237,7 @@ index 9a47573..0156c92 100644
  }
  
  
-@@ -686,6 +886,7 @@ pair<string, rpcfn_type> pCallTable[] =
+@@ -686,6 +888,7 @@ pair<string, rpcfn_type> pCallTable[] =
      make_pair("getallreceived",        &listreceivedbyaddress), // deprecated, renamed to listreceivedbyaddress
      make_pair("getreceivedbyaddress",  &getreceivedbyaddress),
      make_pair("getreceivedbylabel",    &getreceivedbylabel),
@@ -243,7 +245,7 @@ index 9a47573..0156c92 100644
      make_pair("listreceivedbyaddress", &listreceivedbyaddress),
      make_pair("listreceivedbylabel",   &listreceivedbylabel),
      make_pair("backupwallet",          &backupwallet),
-@@ -1189,7 +1390,8 @@ int CommandLineRPC(int argc, char *argv[])
+@@ -1189,7 +1392,8 @@ int CommandLineRPC(int argc, char *argv[])
          if (strMethod == "setgenerate"            && n > 1) ConvertTo<boost::int64_t>(params[1]);
          if (strMethod == "sendtoaddress"          && n > 1) ConvertTo<double>(params[1]);
          if (strMethod == "listtransactions"       && n > 0) ConvertTo<boost::int64_t>(params[0]);
