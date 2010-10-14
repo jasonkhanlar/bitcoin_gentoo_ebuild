@@ -1,6 +1,6 @@
---- makefile.unix	2010-09-18 23:57:32.301909397 +0000
-+++ makefile.gentoo	2010-09-19 16:28:54.291916702 +0000
-@@ -2,75 +2,65 @@
+--- makefile.unix	2010-10-14 19:49:16.934239001 +0000
++++ makefile.gentoo	2010-10-08 07:14:13.113886998 +0000
+@@ -2,78 +2,65 @@
  # Distributed under the MIT/X11 software license, see the accompanying
  # file license.txt or http://www.opensource.org/licenses/mit-license.php.
  
@@ -25,11 +25,14 @@
 -   -l boost_program_options \
 -   -l boost_thread \
 -   -l db_cxx \
+-   -l ssl \
 -   -l crypto \
 - -Wl,-Bdynamic \
--   -l gthread-2.0
+-   -l gthread-2.0 \
+-   -l z \
+-   -l dl
 -
--DEFS=-D__WXGTK__ -DNOPCH -DFOURWAYSSE2
+-DEFS=-D__WXGTK__ -DNOPCH -DFOURWAYSSE2 -DUSE_SSL
 -DEBUGFLAGS=-g -D__WXDEBUG__
 -CFLAGS=-O2 -Wno-invalid-offsetof -Wformat $(DEBUGFLAGS) $(DEFS) $(INCLUDEPATHS)
 -HEADERS=headers.h strlcpy.h serialize.h uint256.h util.h key.h bignum.h base58.h \

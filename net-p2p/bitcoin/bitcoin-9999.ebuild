@@ -62,12 +62,12 @@ src_prepare() {
 			"${S}/makefile.unix"
 	fi
 
+	# http://www.bitcoin.org/smf/index.php?topic=1319.msg15065#msg15065
+	epatch "${FILESDIR}"/${PN}-monitor.patch
 	# http://www.bitcoin.org/smf/index.php?topic=984.msg13120#msg13120
-	epatch "${FILESDIR}"/${PN}-bindaddr.patch
+	#epatch "${FILESDIR}"/${PN}-bindaddr.patch
 	# http://www.bitcoin.org/smf/index.php?topic=1048.msg13022#msg13022
 	epatch "${FILESDIR}"/${PN}-disable_ip_transactions.patch
-	# http://www.bitcoin.org/smf/index.php?topic=724.msg8053#msg8053
-	epatch "${FILESDIR}"/${PN}-getblock.patch
 	# http://www.bitcoin.org/smf/index.php?topic=611.msg11859#msg11859
 	epatch "${FILESDIR}"/${PN}-listgenerated.patch
 	# http://www.bitcoin.org/smf/index.php?topic=611.msg9123#msg9123
