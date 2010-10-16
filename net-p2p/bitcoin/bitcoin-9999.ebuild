@@ -62,7 +62,7 @@ src_prepare() {
 			"${S}/makefile.unix"
 	fi
 
-	# http://www.bitcoin.org/smf/index.php?topic=1319.msg15065#msg15065
+	# http://www.bitcoin.org/smf/index.php?topic=1319.0
 	epatch "${FILESDIR}"/${PN}-monitor.patch
 	# http://www.bitcoin.org/smf/index.php?topic=984.msg13120#msg13120
 	#epatch "${FILESDIR}"/${PN}-bindaddr.patch

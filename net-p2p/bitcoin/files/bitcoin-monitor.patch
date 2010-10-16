@@ -247,7 +247,7 @@ index 88e44cc..8dc12ff 100644
  }
  
  
-@@ -655,10 +657,262 @@ Value backupwallet(const Array& params, bool fHelp)
+@@ -655,10 +657,263 @@ Value backupwallet(const Array& params, bool fHelp)
  }
  
  
@@ -391,6 +391,7 @@ index 88e44cc..8dc12ff 100644
 +    result.push_back(Pair("version", block.nVersion));
 +    result.push_back(Pair("merkleroot", block.hashMerkleRoot.GetHex()));
 +    result.push_back(Pair("time", (boost::int64_t)block.GetBlockTime()));
++    result.push_back(Pair("bits", (boost::uint64_t)block.nBits));
 +    result.push_back(Pair("nonce", (boost::uint64_t)block.nNonce));
 +    Array txhashes;
 +    foreach (const CTransaction&tx, block.vtx)
