@@ -12,7 +12,7 @@ LIBS := ${LDFLAGS} -dead_strip \
 DEBUGFLAGS=-g -DwxDEBUG_LEVEL=0
 WXLIBS=$(shell /usr/bin/wx-config --libs)
 WXDEFS=$(shell /usr/bin/wx-config --cxxflags) -DNOPCH
-CFLAGS := ${CFLAGS} -Wno-invalid-offsetof -Wformat @@GENTOO_CFLAGS_SSE2@@ $(INCLUDEPATHS) 
+CXXFLAGS := ${CXXFLAGS} -Wno-invalid-offsetof -Wformat @@GENTOO_CXXFLAGS_SSE2@@ $(INCLUDEPATHS) 
 HEADERS=headers.h strlcpy.h serialize.h uint256.h util.h key.h bignum.h base58.h \
     script.h db.h net.h irc.h main.h rpc.h uibase.h ui.h noui.h init.h
 
@@ -31,22 +31,22 @@ OBJS= \
 #	cryptopp/obj/cpu.o
 
 bitcoind: $(OBJS:obj/%=obj/nogui/%) obj/sha256.o
-	g++ $(CFLAGS) -o $@ $^ $(LIBPATHS) $(LIBS)
+	g++ $(CXXFLAGS) -o $@ $^ $(LIBPATHS) $(LIBS)
 
 bitcoin: $(OBJS) obj/ui.o obj/uibase.o obj/sha256.o
-	g++ $(CFLAGS) -o $@ $^ $(WXLIBS) $(LIBS)
+	g++ $(CXXFLAGS) -o $@ $^ $(WXLIBS) $(LIBS)
 
 #cryptopp/obj/%.o: cryptopp/%.cpp
-#	g++ -c $(CFLAGS) -O3 -o $@ $<
+#	g++ -c $(CXXFLAGS) -O3 -o $@ $<
 
 obj/%.o: %.cpp $(HEADERS)
-	g++ -c $(CFLAGS) $(WXDEFS) -DGUI -o $@ $<
+	g++ -c $(CXXFLAGS) $(WXDEFS) -DGUI -o $@ $<
 
 obj/sha256.o: sha256.cpp
-	g++ -c $(CFLAGS) @@GENTOO_SHA256_SSE2@@ -o $@ $<
+	g++ -c $(CXXFLAGS) @@GENTOO_SHA256_SSE2@@ -o $@ $<
 
 obj/nogui/%.o: %.cpp $(HEADERS)
-	g++ -c $(CFLAGS) -o $@ $<
+	g++ -c $(CXXFLAGS) -o $@ $<
 
 
 #clean:
