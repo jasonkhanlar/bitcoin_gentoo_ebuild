@@ -14,8 +14,8 @@ SRC_URI="mirror://sourceforge/bitcoin/${P}-linux.tar.gz"
 
 LICENSE="MIT"
 SLOT="0"
-KEYWORDS="~x86"
-IUSE="daemon gui nls sse2"
+KEYWORDS="~amd64 ~x86"
+IUSE="+daemon gui nls sse2"
 
 DEPEND="gui? ( x11-libs/wxGTK:2.9[X] 
 		>=app-admin/eselect-wxwidgets-0.7-r1
