@@ -1,4 +1,4 @@
-# Copyright 2010 Gentoo Foundation
+# Copyright 2010-2011 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
@@ -17,7 +17,7 @@ IUSE="daemon doc nls selinux sse2 wxwidgets"
 
 DEPEND="dev-libs/boost
 	dev-libs/crypto++
-	dev-libs/openssl
+	dev-libs/openssl[-bindist]
 	nls? (
 		sys-devel/gettext
 	)
@@ -85,7 +85,7 @@ src_compile() {
 	fi
 	if ! use daemon && ! use wxwidgets; then
 		einfo "No daemon or wxwidgets USE flag selected, compiling daemon by default."
-		emake -f makefile.unix 																																																							bitcoind || die "emake bitcoind failed"
+		emake -f makefile.unix bitcoind || die "emake bitcoind failed"
 	fi
 }
 
@@ -131,7 +131,7 @@ src_install() {
 			fi
 		done
 	fi
-	
+
 	if use doc; then
 		einfo "Installing documentation"
 		edos2unix *.txt

@@ -17,7 +17,7 @@ IUSE="daemon doc nls selinux sse2 wxwidgets"
 
 DEPEND="dev-libs/boost
 	dev-libs/crypto++
-	dev-libs/openssl
+	dev-libs/openssl[-bindist]
 	nls? (
 		sys-devel/gettext
 	)

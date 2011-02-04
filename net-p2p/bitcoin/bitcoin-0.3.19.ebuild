@@ -1,4 +1,4 @@
-# Copyright 2010 Gentoo Foundation
+# Copyright 2010-2011 Gentoo Foundation
 # Distributed under the terms of the GNU General Public License v2
 # $Header: $
 
@@ -17,11 +17,11 @@ SLOT="0"
 KEYWORDS="~amd64 ~x86"
 IUSE="+daemon gui nls sse2"
 
-DEPEND="gui? ( x11-libs/wxGTK:2.9[X] 
+DEPEND="gui? ( x11-libs/wxGTK:2.9[X]
 		>=app-admin/eselect-wxwidgets-0.7-r1
 		)
 	dev-libs/crypto++
-	dev-libs/openssl
+	dev-libs/openssl[-bindist]
 	dev-libs/boost
 	sys-libs/db:4.8"
 RDEPEND="${DEPEND}"
@@ -34,7 +34,6 @@ pkg_setup() {
 		enewuser bitcoin -1 -1 /var/lib/bitcoin bitcoin
 	fi;
 }
-
 
 src_prepare() {
 	# Copy our Makefile
@@ -100,7 +99,7 @@ src_install() {
 		# Contains wallet.dat and we don't want other users stealing it.
 		diropts -m700
 		dodir /var/lib/bitcoin
-		fowners bitcoin:bitcoin /var/lib/bitcoin 
+		fowners bitcoin:bitcoin /var/lib/bitcoin
 		# To stop bitcoind we need the symlink (su doesn't let bitcoind know about /etc/bitcoin/bitcoin.conf).
 		dodir /var/lib/bitcoin/.bitcoin
 		fowners bitcoin:bitcoin /var/lib/bitcoin/.bitcoin
