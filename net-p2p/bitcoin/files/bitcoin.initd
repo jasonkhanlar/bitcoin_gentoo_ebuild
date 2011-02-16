@@ -36,8 +36,14 @@ start() {
 	if test -z "${BITCOIN_OPTS}"; then
 		BITCOIN_OPTS="-min"
 	fi
-	start-stop-daemon --start --user "${BITCOIN_USER}" --name bitcoind --pidfile /var/run/bitcoind.pid --background --make-pidfile \
-	--env HOME="/var/lib/bitcoin" --exec /usr/bin/bitcoind --chuid "${BITCOIN_USER}" -- "${BITCOIN_OPTS}"
+	start-stop-daemon \
+	--start --user "${BITCOIN_USER}" --name bitcoind \
+	--pidfile /var/run/bitcoind.pid --make-pidfile \
+	--env HOME="/var/lib/bitcoin" --exec /usr/bin/bitcoind \
+	--chuid "${BITCOIN_USER}" \
+	--nicelevel "${NICELEVEL}" \
+	--background \
+	-- "${BITCOIN_OPTS}"
 	eend $?
 }
 

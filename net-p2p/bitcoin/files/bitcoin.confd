@@ -4,5 +4,7 @@
 BITCOIN_USER="bitcoin"
 
 # See http://www.bitcoin.org/smf/index.php?topic=1063
-BITCOIN_OPTS=""
+BITCOIN_OPTS="-daemon"
 
+# nice level
+NICELEVEL="19"
