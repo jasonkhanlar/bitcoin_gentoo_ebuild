@@ -78,13 +78,13 @@ stop_openrc() {
 
 start_baselayout() {
 	start-stop-daemon \
-	start --user "${BITCOIN_USER}" --name bitcoind \
-	pidfile /var/run/bitcoind.pid --make-pidfile \
-	env HOME="/var/lib/bitcoin" --exec /usr/bin/bitcoind \
-	chuid "${BITCOIN_USER}" \
-	nicelevel "${NICELEVEL}" \
-	background \
-	"${BITCOIN_OPTS}"
+	--start --user "${BITCOIN_USER}" --name bitcoind \
+	--pidfile /var/run/bitcoind.pid --make-pidfile \
+	--env HOME="/var/lib/bitcoin" --exec /usr/bin/bitcoind \
+	--chuid "${BITCOIN_USER}" \
+	--nicelevel "${NICELEVEL}" \
+	--background \
+	-- "${BITCOIN_OPTS}"
 	eend $?
 }
 
