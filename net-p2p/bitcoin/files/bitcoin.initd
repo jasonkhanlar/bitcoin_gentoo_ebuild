@@ -25,17 +25,37 @@ checkconfig() {
 			eerror "Specified group must exist!"
 			return 1
 		fi
-	fi	
+	fi
 	return 0
 }
 
 start() {
-	#checkconfig || return $?
 	checkconfig || return 1
 	ebegin "Starting Bitcoin daemon"
 	if test -z "${BITCOIN_OPTS}"; then
-		BITCOIN_OPTS="-min"
+	   BITCOIN_OPTS="-min"
 	fi
+
+	pkg-config openrc
+	if [ $? = 0 ]; then
+	   start_openrc
+	else
+	   start_baselayout
+	fi
+}
+
+stop() {
+       ebegin "Stopping Bitcoin daemon"
+
+       pkg-config openrc
+       if [ $? = 0 ]; then
+	   stop_openrc
+       else
+	   stop_baselayout
+       fi
+}
+
+start_openrc() {
 	start-stop-daemon \
 	--start --user "${BITCOIN_USER}" --name bitcoind \
 	--pidfile /var/run/bitcoind.pid --make-pidfile \
@@ -43,12 +63,36 @@ start() {
 	--chuid "${BITCOIN_USER}" \
 	--nicelevel "${NICELEVEL}" \
 	--background \
+	--wait 2000 \
 	-- "${BITCOIN_OPTS}"
 	eend $?
 }
 
-stop() {
-	ebegin "Stopping Bitcoin daemon"
-	start-stop-daemon --stop --user "${BITCOIN_USER}" --name bitcoind --pidfile /var/run/bitcoind.pid
+stop_openrc() {
+	start-stop-daemon --stop --user "${BITCOIN_USER}" \
+	--name bitcoind --pidfile /var/run/bitcoind.pid \
+	--wait 10000 \
+	--progress
+	eend $?
+}
+
+start_baselayout() {
+	start-stop-daemon \
+	start --user "${BITCOIN_USER}" --name bitcoind \
+	pidfile /var/run/bitcoind.pid --make-pidfile \
+	env HOME="/var/lib/bitcoin" --exec /usr/bin/bitcoind \
+	chuid "${BITCOIN_USER}" \
+	nicelevel "${NICELEVEL}" \
+	background \
+	"${BITCOIN_OPTS}"
+	eend $?
+}
+
+stop_baselayout() {
+	start-stop-daemon \
+	--stop \
+	--user "${BITCOIN_USER}" \
+	--name bitcoind \
+	--pidfile /var/run/bitcoind.pid
 	eend $?
 }

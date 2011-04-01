@@ -24,7 +24,8 @@ DEPEND="gui? ( x11-libs/wxGTK:2.9[X]
 	dev-libs/openssl[-bindist]
 	dev-libs/boost
 	sys-libs/db:4.8"
-RDEPEND="${DEPEND}"
+RDEPEND="${DEPEND}
+        daemon? ( dev-util/pkgconfig )"
 
 # Version 0.3.20.01 provides a tarball with 0.3.20
 S="${WORKDIR}/${PN}-$(get_version_component_range 1-3)"

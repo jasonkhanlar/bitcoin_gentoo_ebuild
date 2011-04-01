@@ -29,7 +29,8 @@ DEPEND="dev-libs/boost
 		app-admin/eselect-wxwidgets
 		x11-libs/wxGTK:2.9[X]
 	)"
-RDEPEND="${DEPEND}"
+RDEPEND="${DEPEND}
+        daemon? ( dev-util/pkgconfig )"
 
 S="${WORKDIR}/${P}/trunk"
 
