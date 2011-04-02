@@ -1,3 +1,5 @@
-Using the ebuilds: https://github.com/mizerydearia/bitcoin_gentoo_ebuild/wiki/Using-the-ebuilds
+Important Note: The Gentoo Bitcoin development has moved to a new location:
 
-Come to Freenode #bitcoin-gentoo and indicate your github account name if you would like commit access.
+     https://github.com/bitcoin-gentoo/bitcoin_gentoo_ebuild
+
+Please update your overlay.xml accordingly
