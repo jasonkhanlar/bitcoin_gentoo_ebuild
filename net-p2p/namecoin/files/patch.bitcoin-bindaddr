@@ -1,0 +1,38 @@
+diff --git a/rpc.cpp b/rpc.cpp
+index 9a47573..8447d15 100644
+--- a/rpc.cpp
++++ b/rpc.cpp
+@@ -972,9 +972,14 @@ void ThreadRPCServer2(void* parg)
+         return;
+     }
+ 
+-    // Bind to loopback 127.0.0.1 so the socket can only be accessed locally
++    int bindPort, v = atoi(mapArgs["-rpcbindport"]);
++    if (v > 0 && v < 65536)
++	bindPort = v;
++    else
++    	bindPort = 8332;
++
+     boost::asio::io_service io_service;
+-    tcp::endpoint endpoint(mapArgs.count("-rpcallowip") ? asio::ip::address_v4::any() : asio::ip::address_v4::loopback(), 8332);
++    tcp::endpoint endpoint(mapArgs.count("-rpcallowip") ? asio::ip::address_v4::any() : asio::ip::address_v4::loopback(), bindPort);
+     tcp::acceptor acceptor(io_service, endpoint);
+ 
+     loop
+@@ -1101,8 +1106,15 @@ Object CallRPC(const string& strMethod, const Array& params)
+               "If the file does not exist, create it with owner-readable-only file permissions."),
+                 GetConfigFile().c_str()));
+ 
++    string strPort;
++    int vport = atoi(mapArgs["-rpcport"]);
++    if (vport > 0 && vport < 65536)
++    	strPort = mapArgs["-rpcport"];
++    else
++        strPort = "8332";
++
+     // Connect to localhost
+-    tcp::iostream stream(GetArg("-rpcconnect", "127.0.0.1"), "8332");
++    tcp::iostream stream(GetArg("-rpcconnect", "127.0.0.1"), strPort);
+     if (stream.fail())
+         throw runtime_error("couldn't connect to server");
+ 

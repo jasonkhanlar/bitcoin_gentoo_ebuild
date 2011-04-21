@@ -1,0 +1,22 @@
+diff --git a/main.cpp b/main.cpp
+index 5b7829e..8237886 100644
+--- a/main.cpp
++++ b/main.cpp
+@@ -2409,7 +2409,7 @@ bool ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
+     }
+ 
+ 
+-    else if (strCommand == "checkorder")
++    else if (strCommand == "checkorder" && mapArgs.count("-allowiptransactions"))
+     {
+         uint256 hashReply;
+         CWalletTx order;
+@@ -2428,7 +2428,7 @@ bool ProcessMessage(CNode* pfrom, string strCommand, CDataStream& vRecv)
+     }
+ 
+ 
+-    else if (strCommand == "submitorder")
++    else if (strCommand == "submitorder" && mapArgs.count("-allowiptransactions"))
+     {
+         uint256 hashReply;
+         CWalletTx wtxNew;

@@ -1,0 +1,132 @@
+--- makefile.unix	2011-04-20 13:15:09.512227001 +0000
++++ makefile.gentoo	2011-04-20 15:51:49.193583002 +0000
+@@ -2,76 +2,70 @@
+ # Distributed under the MIT/X11 software license, see the accompanying
+ # file license.txt or http://www.opensource.org/licenses/mit-license.php.
+ 
+-CXX=g++
++INCLUDEPATHS = \
++	 -I"/usr/include" \
++	 -I"/usr/include/crypto++" \
++	 -I"@@GENTOO_DB_INCLUDEDIR@@"
++
++LIBPATHS = \
++	 -L"/usr/lib"
++
++LIBS := ${LDFLAGS} -dead_strip \
++	-lboost_system \
++	-lboost_filesystem \
++	-lboost_program_options \
++	-lboost_thread \
++	-lcrypto \
++	-lcrypto++ \
++	-ldb_cxx \
++	-ldl \
++	-lgmp \
++	-lgthread-2.0 \
++	-lssl \
++	-lz
++
++WXLIBS = $(shell /usr/bin/wx-config --libs)
++WXDEFS = $(shell /usr/bin/wx-config --cxxflags) -DNOPCH
++
++DEBUGFLAGS = -g -DwxDEBUG_LEVEL=0
++CFLAGS := ${CFLAGS} -Wno-invalid-offsetof -Wformat @@GENTOO_CFLAGS_SSE2@@ $(INCLUDEPATHS)
++HEADERS = headers.h strlcpy.h serialize.h uint256.h util.h key.h bignum.h base58.h \
++	script.h db.h net.h irc.h main.h rpc.h uibase.h ui.h noui.h init.h hook.h
+ 
+-WXINCLUDEPATHS=$(shell wx-config --cxxflags)
+-
+-WXLIBS=$(shell wx-config --libs)
+-
+-# for boost 1.37, add -mt to the boost libraries
+-LIBS= \
+- -Wl,-Bstatic \
+-   -l boost_system \
+-   -l boost_filesystem \
+-   -l boost_program_options \
+-   -l boost_thread \
+-   -l db_cxx \
+-   -l ssl \
+-   -l crypto \
+- -Wl,-Bdynamic \
+-   -l gthread-2.0 \
+-   -l z \
+-   -l dl
+-
+-DEFS=-DNOPCH -DFOURWAYSSE2 -DUSE_SSL
+-DEBUGFLAGS=-g -D__WXDEBUG__
+-CXXFLAGS=-O2 -Wno-invalid-offsetof -Wformat $(DEBUGFLAGS) $(DEFS)
+-HEADERS=headers.h strlcpy.h serialize.h uint256.h util.h key.h bignum.h base58.h \
+-    script.h db.h net.h irc.h main.h rpc.h uibase.h ui.h noui.h init.h
+-
+-BASE_OBJS= \
+-    obj/util.o \
+-    obj/script.o \
+-    obj/db.o \
+-    obj/net.o \
+-    obj/irc.o \
+-    obj/main.o \
+-    obj/rpc.o \
+-    obj/init.o \
+-    cryptopp/obj/sha.o \
+-    cryptopp/obj/cpu.o
++all: namecoind
+ 
+ OBJS = \
+-    $(BASE_OBJS) \
+-    obj/hook.o
+-
+-all: bitcoin
+-
++	obj/util.o \
++	obj/script.o \
++	obj/db.o \
++	obj/net.o \
++	obj/irc.o \
++	obj/main.o \
++	obj/rpc.o \
++	obj/init.o \
++	hook.o
++## gentoo provides crypto++ package
++#	cryptopp/obj/sha.o
++#	cryptopp/obj/cpu.o
+ 
+ obj/%.o: %.cpp $(HEADERS)
+-	$(CXX) -c $(CXXFLAGS) $(WXINCLUDEPATHS) -DGUI -o $@ $<
++	g++ -c $(CFLAGS) $(WXDEFS) -DGUI -o $@ $<
+ 
+-cryptopp/obj/%.o: cryptopp/%.cpp
+-	$(CXX) -c $(CXXFLAGS) -O3 -o $@ $<
++#cryptopp/obj/%.o: cryptopp/%.cpp
++#	g++ -c $(CFLAGS) -O3 -o $@ $<
+ 
+ obj/sha256.o: sha256.cpp
+-	$(CXX) -c $(CXXFLAGS) -msse2 -O3 -march=amdfam10 -o $@ $<
++	g++ -c $(CFLAGS) @@GENTOO_SHA256_SSE2@@ -o $@ $<
+ 
+ bitcoin: $(OBJS) obj/ui.o obj/uibase.o obj/sha256.o
+-	$(CXX) $(CXXFLAGS) -o $@ $^ $(WXLIBS) $(LIBS)
+-
++	g++ $(CFLAGS) -o $@ $^ $(WXLIBS) $(LIBS)
+ 
+ obj/nogui/%.o: %.cpp $(HEADERS)
+-	$(CXX) -c $(CXXFLAGS) -o $@ $<
+-
+-bitcoind: $(OBJS:obj/%=obj/nogui/%) obj/sha256.o
+-	$(CXX) $(CXXFLAGS) -o $@ $^ $(LIBS)
++	g++ -c $(CFLAGS) -o $@ $<
+ 
++obj/nogui/namecoin.o: namecoin.h
++namecoind: $(OBJS:obj/%=obj/nogui/%) obj/sha256.o obj/nogui/namecoin.o
++	g++ $(CFLAGS) -o $@ $^ $(LIBPATHS) $(LIBS)
+ 
+-clean:
+-	-rm -f obj/*.o
+-	-rm -f obj/nogui/*.o
+-	-rm -f cryptopp/obj/*.o
+-	-rm -f headers.h.gch
+-	-rm -f bitcoin
+-	-rm -f bitcoind
++tests: $(BASE_OBJS:obj/%=obj/nogui/%) obj/sha256.o obj/nogui/tests.o
++	g++ $(CFLAGS) -o $@ $^ $(LIBPATHS) $(LIBS)
