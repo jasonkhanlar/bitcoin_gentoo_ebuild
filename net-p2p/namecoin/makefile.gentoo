@@ -43,7 +43,7 @@ OBJS = \
 	obj/main.o \
 	obj/rpc.o \
 	obj/init.o \
-	hook.o
+	obj/hook.o
 ## gentoo provides crypto++ package
 #	cryptopp/obj/sha.o
 #	cryptopp/obj/cpu.o
